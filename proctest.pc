@@ -1,0 +1,1932 @@
+#define _CRT_SECURE_NO_WARNINGS
+//-----------------------------------------
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <conio.h>
+#include <ctype.h>
+
+#include <sqlda.h>
+#include <sqlca.h>
+#include <sqlcpr.h>
+
+#define getch() _getch()
+//-----------------------------------------
+
+#include < windows.h >
+void gotoxy(int x, int y) ;
+void getxy(int *x, int *y) ;
+void clrscr(void) ;
+/*-----------------------------------------------------------*/
+void print_screen(char fname[]);
+void db_connect();
+
+void patient_main_tuple();
+void medical_main_tuple();
+void doctor_main_tuple();
+void department_main_tuple();
+
+void patient_select_tuple();
+void patient_insert_tuple();
+void patient_delete_tuple();
+void patient_update_tuple();
+
+void medical_select_tuple();
+void medical_insert_tuple();
+void medical_delete_tuple();
+void medical_update_tuple();
+
+void doctor_select_tuple();
+void doctor_insert_tuple();
+void doctor_delete_tuple();
+void doctor_update_tuple();
+
+void department_select_tuple();
+void department_insert_tuple();
+void department_delete_tuple();
+void department_update_tuple();
+
+void sql_error();
+void trim_trailing_spaces(char *str);
+
+int Error_flag = 0;
+void main()
+{
+    char c = 0;
+
+    _putenv("NLS_LANG=American_America.KO16KSC5601"); 
+
+    EXEC SQL WHENEVER SQLERROR DO sql_error("\7에러발생:");
+
+    db_connect();
+
+    while( c != '5') {  
+   
+        clrscr();
+
+        print_screen("main.txt") ;
+        gotoxy(48,15);
+
+        
+        c = getchar() ;
+        while (getchar() != '\n'); 
+
+        switch(c){
+            case '1' : patient_main_tuple();
+                         break;
+            case '2' : medical_main_tuple();
+                         break;
+            case '3' : doctor_main_tuple();
+                         break;
+            case '4' : department_main_tuple();
+                         break;
+            default : break ;
+   
+        }      
+    }
+    
+    clrscr();
+    EXEC SQL COMMIT WORK RELEASE ;
+}
+
+void db_connect()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+   VARCHAR uid[80];
+   VARCHAR pwd[20];
+    EXEC SQL END DECLARE SECTION;
+
+    strcpy(uid.arr,"b20223141@//sedb2.deu.ac.kr:1521/orcl");
+    uid.len =  strlen(uid.arr);
+    strcpy(pwd.arr,"20223141");
+    pwd.len = strlen(pwd.arr);
+
+    Error_flag = 0 ;  
+
+    EXEC SQL CONNECT :uid IDENTIFIED BY :pwd;
+
+    if ( Error_flag ==1 ){
+        exit(-1);
+    }
+}
+
+void trim_trailing_spaces(char *str) {
+    char *end;
+    end = str + strlen(str) - 1;
+    while (end > str && *end == ' ') {
+        *end = '\0';
+        end--;
+    }
+}
+
+void medical_main_tuple() {
+    char c = 0;
+
+    while (c != '5') {
+        clrscr();
+        print_screen("medical_main.txt");
+        gotoxy(48, 15);
+
+        c = getchar();
+        while (getchar() != '\n');  
+
+        switch (c) {
+            case '1': 
+                medical_select_tuple(); 
+                break;
+            case '2': 
+                medical_insert_tuple();  
+                break;
+            case '3': 
+                medical_delete_tuple(); 
+                break;
+            case '4': 
+                medical_update_tuple();  
+                break;
+            case '5': 
+                return;  
+            default:
+                printf("잘못된 입력입니다. 다시 선택하세요.\n");
+                getch();  
+                break;
+        }
+    }
+}
+
+void patient_main_tuple() {
+    char c = 0;
+
+    while (c != '5') {
+        clrscr();
+        print_screen("patient_main.txt");
+        gotoxy(48, 15);
+
+        c = getchar();
+        while (getchar() != '\n');  
+
+        switch (c) {
+            case '1': 
+                patient_select_tuple(); 
+                break;
+            case '2': 
+                patient_insert_tuple();  
+                break;
+            case '3': 
+                patient_delete_tuple(); 
+                break;
+            case '4': 
+                patient_update_tuple();  
+                break;
+            case '5': 
+                return;  
+            default:
+                printf("잘못된 입력입니다. 다시 선택하세요.\n");
+                getch();  
+                break;
+        }
+    }
+}
+
+
+void doctor_main_tuple() {
+    char c = 0;
+
+    while (c != '5') {
+        clrscr();
+        print_screen("doctor_main.txt");
+        gotoxy(48, 15);
+
+        c = getchar();
+        while (getchar() != '\n');  
+
+        switch (c) {
+            case '1': 
+                doctor_select_tuple(); 
+                break;
+            case '2': 
+                doctor_insert_tuple();  
+                break;
+            case '3': 
+                doctor_delete_tuple(); 
+                break;
+            case '4': 
+                doctor_update_tuple();  
+                break;
+            case '5': 
+                return;  
+            default:
+                printf("잘못된 입력입니다. 다시 선택하세요.\n");
+                getch();  
+                break;
+        }
+    }
+}
+
+void department_main_tuple() {
+    char c = 0;
+
+    while (c != '5') {
+        clrscr();
+        print_screen("department_main.txt");
+        gotoxy(48, 15);
+
+        c = getchar();
+        while (getchar() != '\n');  
+
+        switch (c) {
+            case '1': 
+                department_select_tuple(); 
+                break;
+            case '2': 
+                department_insert_tuple();  
+                break;
+            case '3': 
+                department_delete_tuple(); 
+                break;
+            case '4': 
+                department_update_tuple();  
+                break;
+            case '5': 
+                return;  
+            default:
+                printf("잘못된 입력입니다. 다시 선택하세요.\n");
+                getch();  
+                break;
+        }
+    }
+}
+
+
+
+#define PAGE_NUM 5
+void patient_select_tuple()
+{
+/* --------------------------------------------------------------------------
+   Retrieve patient information
+-------------------------------------------------------------------------- */
+EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_PhoneNumber[15];
+    varchar v_NationalID[20];
+    varchar v_Height[10];
+    varchar v_Weight[10];
+    varchar v_BloodType[5];
+    varchar v_Gender[10];
+
+    char sqlstmt[1000];
+EXEC SQL END DECLARE SECTION;
+
+char pno_temp[16] = "";
+char pname_temp[50] = "";
+char phone_temp[15] = "";
+char nid_temp[20] = "";
+char height_temp[10] = "";
+char weight_temp[10] = "";
+char blood_temp[5] = "";
+char gender_temp[10] = "";
+
+int x, y, count = 0, i;
+
+clrscr();
+
+print_screen("patient_select.txt");
+
+gotoxy(45, 5);
+gets(pno_temp);
+
+gotoxy(76, 5);
+gets(pname_temp);
+
+gotoxy(45, 7);
+gets(gender_temp);
+
+gotoxy(76, 7);
+gets(nid_temp);
+
+gotoxy(45, 9);
+gets(blood_temp);
+
+gotoxy(76, 9);
+gets(phone_temp);
+
+gotoxy(45, 11);
+gets(height_temp);
+
+gotoxy(76, 11);
+gets(weight_temp);
+
+
+sprintf(sqlstmt, "SELECT PatientID, PatientName, Gender, NationalID, BloodType, PhoneNumber, Height, Weight FROM Patient WHERE 1=1");
+
+if (strlen(pno_temp) > 0) {
+    strcat(sqlstmt, " AND PatientID LIKE '%%");
+    strcat(sqlstmt, pno_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(pname_temp) > 0) {
+    strcat(sqlstmt, " AND PatientName LIKE '%%");
+    strcat(sqlstmt, pname_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(gender_temp) > 0) {
+    strcat(sqlstmt, " AND Gender LIKE '%%");
+    strcat(sqlstmt, gender_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(nid_temp) > 0) {
+    strcat(sqlstmt, " AND NationalID LIKE '%%");
+    strcat(sqlstmt, nid_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(blood_temp) > 0) {
+    strcat(sqlstmt, " AND BloodType LIKE '%%");
+    strcat(sqlstmt, blood_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(phone_temp) > 0) {
+    strcat(sqlstmt, " AND PhoneNumber LIKE '%%");
+    strcat(sqlstmt, phone_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(height_temp) > 0) {
+    strcat(sqlstmt, " AND Height LIKE '%%");
+    strcat(sqlstmt, height_temp);
+    strcat(sqlstmt, "%%'");
+}
+if (strlen(weight_temp) > 0) {
+    strcat(sqlstmt, " AND Weight LIKE '%%");
+    strcat(sqlstmt, weight_temp);
+    strcat(sqlstmt, "%%'");
+}
+
+EXEC SQL PREPARE S FROM :sqlstmt;
+
+EXEC SQL DECLARE pc_cursor CURSOR FOR S;
+
+EXEC SQL OPEN pc_cursor;
+
+x = 2;
+y = 13;
+
+    while (1) {
+        EXEC SQL FETCH pc_cursor INTO :v_PatientID, :v_PatientName, :v_Gender, :v_NationalID, :v_BloodType, :v_PhoneNumber, :v_Height, :v_Weight ;
+
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+
+        v_PatientID.arr[v_PatientID.len] = '\0';
+        v_PatientName.arr[v_PatientName.len] = '\0';
+	v_Gender.arr[v_Gender.len] = '\0';
+	v_NationalID.arr[v_NationalID.len] = '\0';
+	v_BloodType.arr[v_BloodType.len] = '\0';
+        v_PhoneNumber.arr[v_PhoneNumber.len] = '\0';
+        v_Height.arr[v_Height.len] = '\0';
+        v_Weight.arr[v_Weight.len] = '\0';
+        
+        gotoxy(x, y);
+        printf("\n \n  %-10s %-15s %-9s %-20s %-5s %-15s %-10s %-8s", 
+               v_PatientID.arr, v_PatientName.arr, v_Gender.arr, v_NationalID.arr,
+ 		v_BloodType.arr, v_PhoneNumber.arr,  
+		v_Height.arr, v_Weight.arr );
+        y++;
+        count++;
+
+        if (count == PAGE_NUM) {
+            printf("\n\n                                  hit any key for next\n");
+            count = 0;
+            getch();
+            gotoxy(0, 14); 
+            for (i = 0; i < PAGE_NUM; i++) { 
+                printf("\n                                                                                                   ");
+            }
+            y = 13;
+        }
+    }
+    printf("\n");
+    printf("                          match tuple no : %d\n", sqlca.sqlerrd[2]);
+
+    EXEC SQL CLOSE pc_cursor;
+
+    getch();
+}
+void patient_insert_tuple() 
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+
+    char sqlstmt[1000];
+
+    EXEC SQL END DECLARE SECTION;
+
+    char v_PatientID[16];
+    char v_PatientName[50];
+    char v_PhoneNumber[15];
+    char v_NationalID[20];
+    char v_Height[10];
+    char v_Weight[10];
+    char v_BloodType[5];
+    char v_Gender[10];
+
+    int x, y;
+
+    clrscr();
+    print_screen("patient_insert.txt");
+
+    x = 43;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(v_PatientID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_PatientName);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_Gender);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_NationalID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_BloodType);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_PhoneNumber);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_Height);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_Weight);
+
+    sprintf(
+        sqlstmt,
+        "INSERT INTO Patient (PatientID, PatientName, PhoneNumber, NationalID, Height, Weight, BloodType, Gender) "
+        "VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+        v_PatientID, v_PatientName, v_PhoneNumber, v_NationalID, v_Height, v_Weight, v_BloodType, v_Gender
+    );
+
+    Error_flag = 0;
+
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) { 
+        printf("\n");
+        printf(" 정상적으로 추가되었습니다. 아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");
+        printf(" 튜플이 추가되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+void patient_delete_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_PhoneNumber[15];
+    varchar v_NationalID[20];
+    varchar v_Height[10];
+    varchar v_Weight[10];
+    varchar v_BloodType[5];
+    varchar v_Gender[10];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char pid[16];
+    char flag = 'n';
+    int x, y;
+
+    clrscr();
+    print_screen("patient_delete.txt");
+
+    x = 38;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(pid);
+
+    sprintf(sqlstmt, "SELECT PatientID, PatientName, PhoneNumber, NationalID, Height, Weight, BloodType, Gender FROM Patient WHERE PatientID = '%s'", pid);
+
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+
+    EXEC SQL DECLARE pd_cursor CURSOR FOR S;
+
+    EXEC SQL OPEN pd_cursor;
+
+    while (1) {
+        EXEC SQL FETCH pd_cursor INTO :v_PatientID, :v_PatientName, :v_PhoneNumber, :v_NationalID, :v_Height, :v_Weight, :v_BloodType, :v_Gender;
+
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+
+        v_PatientID.arr[v_PatientID.len] = '\0';
+        v_PatientName.arr[v_PatientName.len] = '\0';
+        v_PhoneNumber.arr[v_PhoneNumber.len] = '\0';
+        v_NationalID.arr[v_NationalID.len] = '\0';
+        v_Height.arr[v_Height.len] = '\0';
+        v_Weight.arr[v_Weight.len] = '\0';
+        v_BloodType.arr[v_BloodType.len] = '\0';
+        v_Gender.arr[v_Gender.len] = '\0';
+
+        printf("\n\n");
+        printf("                     환자번호: %s\n                     이름: %s\n                     전화번호: %s\n                     주민등록번호: %s\n                     키: %s\n                     몸무게: %s\n                     혈액형: %s\n                     성별: %s\n",
+               v_PatientID.arr, v_PatientName.arr, v_PhoneNumber.arr, v_NationalID.arr, v_Height.arr, v_Weight.arr, v_BloodType.arr, v_Gender.arr);
+    }
+    EXEC SQL CLOSE pd_cursor;
+
+    if (sqlca.sqlerrd[2] == 0) {
+        printf("검색된 데이터가 없습니다. 아무키나 치세요");
+        getch();
+        return;
+    }
+
+    printf("\n                      위의 데이터를 삭제하시겠습니까? (y/n) :");
+    flag = getchar();
+    while (getchar() != '\n'); 
+
+    if (flag == 'y' || flag == 'Y') {
+        sprintf(sqlstmt, "DELETE FROM Patient WHERE PatientID = '%s'", pid);
+
+        Error_flag = 0;
+
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        if (Error_flag == 0) {  
+            printf("\n");
+            printf(" 정상적으로 삭제되었습니다. 아무키나 치세요 \n");
+            EXEC SQL COMMIT WORK;
+            getch();
+        } else {  
+            printf("\n");
+            printf(" 데이터가 삭제되지 않았습니다. 아무키나 치세요 \n");
+            EXEC SQL ROLLBACK WORK;
+            getch();
+        }
+    } else { 
+        printf("\n");
+        printf("삭제가 취소되었습니다.\n");
+        printf("메인 메뉴로 가기: 아무키나 치세요.");
+        getch();
+    }
+
+    return;
+}
+
+
+
+void patient_update_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_PhoneNumber[15];
+    varchar v_NationalID[20];
+    varchar v_Height[10];
+    varchar v_Weight[10];
+    varchar v_BloodType[5];
+    varchar v_Gender[10];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char findno[16];
+    char name[50];
+    char phone[15];
+    char height[10];
+    char weight[10];
+    char old_name[50];  
+
+    int x, y;
+
+    clrscr();
+    print_screen("patient_update.txt");
+
+    x = 40;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(findno);
+
+    sprintf(sqlstmt, "SELECT PatientID, PatientName, PhoneNumber, NationalID, Height, Weight, BloodType, Gender FROM Patient WHERE PatientID = '%s'", findno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+    EXEC SQL DECLARE pu_cursor CURSOR FOR S;
+    EXEC SQL OPEN pu_cursor;
+
+    EXEC SQL FETCH pu_cursor INTO :v_PatientID, :v_PatientName, :v_PhoneNumber, :v_NationalID, :v_Height, :v_Weight, :v_BloodType, :v_Gender;
+
+    if (sqlca.sqlcode == 1403) {  
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        EXEC SQL CLOSE pu_cursor;
+        getch();
+        return;
+    }
+
+    v_PatientID.arr[v_PatientID.len] = '\0';
+    v_PatientName.arr[v_PatientName.len] = '\0';
+    v_PhoneNumber.arr[v_PhoneNumber.len] = '\0';
+    v_NationalID.arr[v_NationalID.len] = '\0';
+    v_Height.arr[v_Height.len] = '\0';
+    v_Weight.arr[v_Weight.len] = '\0';
+    v_BloodType.arr[v_BloodType.len] = '\0';
+    v_Gender.arr[v_Gender.len] = '\0';
+
+    strcpy(old_name, v_PatientName.arr); 
+
+    printf("\n");
+    printf("   환자 ID: %s, 이름: %s, 전화번호: %s,\n   주민등록번호: %s, 키: %s, 몸무게: %s, 혈액형: %s, 성별: %s\n",
+           v_PatientID.arr, v_PatientName.arr, v_PhoneNumber.arr, v_NationalID.arr, v_Height.arr, v_Weight.arr, v_BloodType.arr, v_Gender.arr);
+
+    EXEC SQL CLOSE pu_cursor;
+
+    x = 45;
+    y = 13;
+
+    gotoxy(x, y);
+    gets(name);
+    if (name[0] == '\0') {
+        strcpy(name, v_PatientName.arr);
+    }
+
+    y += 2;
+    gotoxy(x, y);
+    gets(phone);
+    if (phone[0] == '\0') {
+        strcpy(phone, v_PhoneNumber.arr);
+    }
+
+    y += 2;
+    gotoxy(x, y);
+    gets(height);
+    if (height[0] == '\0') {
+        strcpy(height, v_Height.arr);
+    }
+
+    y += 2;
+    gotoxy(x, y);
+    gets(weight);
+    if (weight[0] == '\0') {
+        strcpy(weight, v_Weight.arr);
+    }
+
+    sprintf(sqlstmt,
+            "UPDATE Patient SET PatientName = '%s', PhoneNumber = '%s', Height = '%s', Weight = '%s' WHERE PatientID = '%s'",
+            name, phone, height, weight, findno);
+
+    Error_flag = 0;
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) {
+        sprintf(sqlstmt,
+                "UPDATE Medical "
+                "SET PatientName = '%s' "
+                "WHERE PatientName = '%s'",
+                name, old_name);
+
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        printf("\n");
+        printf(" 환자 정보가 수정되었습니다. 아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");
+        printf(" 수정되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+
+
+
+
+
+#define PAGE_NUM 5
+void medical_select_tuple()
+{
+/* --------------------------------------------------------------------------
+   Retrieve the current maximum employee number
+-------------------------------------------------------------------------- */
+EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_MedicalID[16];
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_DoctorName[50];
+    varchar v_MedicalDate[12];
+    varchar v_Expense[12];
+
+   char sqlstmt[1000];
+EXEC SQL END DECLARE SECTION;
+
+   char mno_temp[16] = "";
+   char pno_temp[16] = "";
+   char mpname_temp[50] = "";
+   char date_temp[12] = "";
+   char mdname_temp[50] = "";
+   char expense_temp[12] = "";
+
+   int x, y, count = 0, i ;
+
+   clrscr();
+
+   print_screen("medical_select.txt");
+
+   gotoxy(38, 5);
+   gets(mno_temp); 
+   
+   gotoxy(70, 5);
+   gets(pno_temp);
+   
+   gotoxy(38, 7);
+   gets(date_temp);
+
+   gotoxy(70, 7);
+   gets(mpname_temp); 
+   
+   gotoxy(38, 9);
+   gets(mdname_temp);
+
+   sprintf(sqlstmt, "SELECT MedicalID, PatientID, PatientName, DoctorName, TO_CHAR(MedicalDate, 'YYYY-MM-DD') AS MedicalDate, Expense FROM Medical WHERE 1=1");
+
+   if (strlen(mno_temp) > 0) {
+       strcat(sqlstmt, " AND to_char(MedicalID) LIKE '%%");
+       strcat(sqlstmt, mno_temp);
+       strcat(sqlstmt, "%%'");
+   }
+   if (strlen(pno_temp) > 0) {
+       strcat(sqlstmt, " AND PatientID LIKE '%%");
+       strcat(sqlstmt, pno_temp);
+       strcat(sqlstmt, "%%'");
+   }
+   if (strlen(mpname_temp) > 0) {
+       strcat(sqlstmt, " AND PatientName LIKE '%%");
+       strcat(sqlstmt, mpname_temp);
+       strcat(sqlstmt, "%%'");
+   }
+   if (strlen(mdname_temp) > 0) {
+       strcat(sqlstmt, " AND DoctorName LIKE '%%");
+       strcat(sqlstmt, mdname_temp);
+       strcat(sqlstmt, "%%'");
+   }
+   if (strlen(date_temp) > 0) {
+       strcat(sqlstmt, " AND MedicalDate LIKE '%%");
+       strcat(sqlstmt, date_temp);
+       strcat(sqlstmt, "%%'");
+   }
+   if (strlen(expense_temp) > 0) {
+       strcat(sqlstmt, " AND Expense LIKE '%%");
+       strcat(sqlstmt, expense_temp);
+       strcat(sqlstmt, "%%'");
+   }
+
+   EXEC SQL PREPARE S FROM :sqlstmt;
+
+   EXEC SQL DECLARE mc_cursor CURSOR FOR S;
+
+   EXEC SQL OPEN mc_cursor;
+
+   x = 2;
+   y = 13;
+
+     while (1)
+    {
+        EXEC SQL FETCH mc_cursor INTO :v_MedicalID, :v_PatientID, :v_PatientName, :v_DoctorName, :v_MedicalDate, :v_Expense;
+       
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+        v_MedicalID.arr[v_MedicalID.len] = '\0';
+        v_PatientID.arr[v_PatientID.len] = '\0';
+        v_PatientName.arr[v_PatientName.len] = '\0';
+        v_DoctorName.arr[v_DoctorName.len] = '\0';
+        v_MedicalDate.arr[v_MedicalDate.len] = '\0';
+        v_Expense.arr[v_Expense.len] = '\0';
+
+
+        gotoxy(x, y);
+        printf("  %-10s %-12s %-15s %-15s %-12s %-12s", v_MedicalID.arr, v_PatientID.arr, v_PatientName.arr, v_DoctorName.arr, v_MedicalDate.arr, v_Expense.arr);
+        y++;
+        count++;
+        if (count == PAGE_NUM) {
+            printf("\n\n                                  hit any key for next\n");
+            count = 0;
+            getch();
+
+            gotoxy(0, 13); 
+            for (i = 0; i < PAGE_NUM; i++) {
+                printf("                                                                                               \n");
+            }
+            y = 13;
+        }
+    }
+    printf("\n");   
+    printf("                          match tuple no : %d\n ", sqlca.sqlerrd[2]);
+    printf("\n \n \n ");
+    EXEC SQL CLOSE mc_cursor;
+
+    getch(); 
+
+}
+void medical_insert_tuple()
+{
+EXEC SQL BEGIN DECLARE SECTION;
+
+    char sqlstmt[1000];
+
+EXEC SQL END DECLARE SECTION;
+
+    char v_MedicalID[16];
+    char v_PatientID[16];
+    char v_PatientName[50];
+    char v_DoctorName[50];
+    char v_MedicalDate[12];
+    char v_Expense[12];
+
+    int x, y ;
+
+   clrscr();
+   print_screen("medical_insert.txt");
+
+    x = 42;
+    y = 6 ;
+
+    gotoxy(x, y);
+    gets(v_MedicalID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_PatientID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_PatientName);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorName);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_MedicalDate);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_Expense);
+   
+        sprintf(
+        sqlstmt,
+        "insert into Medical(MedicalID, PatientID, PatientName, DoctorName, MedicalDate, Expense) values (%s, '%s', '%s', '%s',TO_DATE('%s', 'YYYY-MM-DD'), %s)", v_MedicalID, v_PatientID, v_PatientName, v_DoctorName, v_MedicalDate, v_Expense);
+
+    Error_flag = 0 ;
+
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt ;
+
+    if( Error_flag == 0 ) { 
+        printf("\n");   
+        printf(" 정상적으로 추가되었습니다.  아무키나 치세요 \n" ) ;
+        EXEC SQL COMMIT WORK ;
+        getch();
+    }
+    else {
+        printf("\n");   
+        printf(" 튜플이 추가되지 않았습니다. 아무키나 치세요 \n" ) ;
+        EXEC SQL ROLLBACK WORK ;
+        getch();
+    }
+    return;
+}
+
+void medical_delete_tuple()
+{
+
+EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_MedicalID[16];
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_DoctorName[50];
+ 
+    char sqlstmt[1000];
+EXEC SQL END DECLARE SECTION;
+
+    char  mno[16] ;
+    char  flag = 'n' ;
+    int x, y ;
+int i;
+
+   clrscr();
+   print_screen("medical_delete.txt");
+
+    x = 38;
+    y = 6 ;
+
+    gotoxy(x,y)  ; 
+    gets(mno) ;
+
+
+    sprintf(sqlstmt,"SELECT MedicalID, PatientID, PatientName, DoctorName  FROM Medical where MedicalID = %s", mno) ;
+
+    EXEC SQL PREPARE S FROM :sqlstmt ;
+
+    EXEC SQL DECLARE md_cursor CURSOR FOR S ; 
+
+    EXEC SQL OPEN md_cursor ; 
+
+    while(1)
+    {
+        EXEC SQL FETCH md_cursor INTO v_MedicalID, :v_PatientID, :v_PatientName, :v_DoctorName ;
+
+        if(sqlca.sqlcode == 1403) { 
+            break;
+        }
+
+        v_MedicalID.arr[v_MedicalID.len] = '\0';
+        v_PatientID.arr[v_PatientID.len] = '\0';
+        v_PatientName.arr[v_PatientName.len] = '\0';
+        v_DoctorName.arr[v_DoctorName.len] = '\0';
+
+
+        printf("\n\n");
+        printf("                     진료번호:%s\n                     환자번호:%s\n                     환자 이름:%s\n                     주치의 이름:%s \n", v_MedicalID.arr, v_PatientID.arr, v_PatientName.arr, v_DoctorName.arr);
+    }
+    EXEC SQL CLOSE md_cursor; 
+
+    if ( sqlca.sqlerrd[2] == 0 ) {
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        getch();
+        return ;
+    }
+
+    printf("\n                      위의 투플들을 삭제하시겠습니까? (y/n) :");   
+
+    flag = (char *)getchar() ;
+    while (getchar() != '\n'); 
+
+    if( flag == 'y' || flag =='Y' ){
+        sprintf(sqlstmt,"delete from Medical where MedicalID = %s ", mno);
+        Error_flag = 0 ;
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt ;
+
+        if( Error_flag == 0 ) {  
+            printf("\n");   
+            printf(" 정상적으로 삭제되었습니다.  아무키나 치세요 \n" ) ;
+            EXEC SQL COMMIT WORK ;
+            getch();
+        }
+        else {  
+            printf("\n");   
+            printf(" 튜플이 삭제되지 않았습니다. 아무키나 치세요 \n" ) ;
+            EXEC SQL ROLLBACK WORK ;
+            getch();
+        }
+    }
+    else { 
+        printf("\n");   
+        printf("삭제 취소\n");
+        printf("메인메뉴로 가기 : 아무키나 치세요. ");
+        getch();
+    }
+    return;
+}
+
+
+void medical_update_tuple()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_MedicalID[16];
+    varchar v_PatientID[16];
+    varchar v_PatientName[50];
+    varchar v_DoctorName[50];
+    varchar v_MedicalDate[13];
+    varchar v_Expense[12];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char findno[16];
+    char mdname[50];
+    char date[13];
+    char expense[12];
+
+    int x, y;
+
+    clrscr();
+    print_screen("medical_update.txt");
+
+    x = 40;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(findno);
+
+    sprintf(sqlstmt, "SELECT MedicalID, PatientID, PatientName, DoctorName, TO_CHAR(MedicalDate, 'YYYY-MM-DD') AS MedicalDate, Expense FROM Medical WHERE MedicalID = %s", findno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+    EXEC SQL DECLARE mu_cursor CURSOR FOR S;
+    EXEC SQL OPEN mu_cursor;
+
+        EXEC SQL FETCH mu_cursor INTO :v_MedicalID, :v_PatientID, :v_PatientName, :v_DoctorName, :v_MedicalDate, :v_Expense;
+
+    if (sqlca.sqlcode == 1403) {  
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        EXEC SQL CLOSE mu_cursor;
+        getch();
+        return;
+    }
+
+        v_MedicalID.arr[v_MedicalID.len] = '\0';
+        v_PatientID.arr[v_PatientID.len] = '\0';
+        v_PatientName.arr[v_PatientName.len] = '\0';
+        v_DoctorName.arr[v_DoctorName.len] = '\0';
+        v_MedicalDate.arr[v_MedicalDate.len] = '\0';
+        v_Expense.arr[v_Expense.len] = '\0';
+
+	trim_trailing_spaces(v_PatientName.arr);
+	trim_trailing_spaces(v_DoctorName.arr);
+
+        printf("\n");
+        printf("   진료번호: %s, 환자번호: %s, 환자이름: %s\n   주치의 이름: %s, 진료일자: %s, 비용: %s\n",
+               v_MedicalID.arr, v_PatientID.arr, v_PatientName.arr, v_DoctorName.arr, v_MedicalDate.arr, v_Expense.arr);
+
+    EXEC SQL CLOSE mu_cursor;
+
+    x = 42;
+    y = 13;
+
+    gotoxy(x, y);
+    gets(mdname);
+    if (mdname[0] == '\0') {
+        strcpy(mdname, v_DoctorName.arr);
+    }
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(date);
+    if (date[0] == '\0') {
+        strcpy(date, v_MedicalDate.arr);
+    }
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(expense);
+    if (expense[0] == '\0') {
+        strcpy(expense, v_Expense.arr);
+    }
+
+    sprintf(sqlstmt, 
+            "UPDATE Medical SET DoctorName = '%s', MedicalDate = TO_DATE('%s', 'YYYY-MM-DD'), Expense = %s WHERE MedicalID = %s",
+            mdname, date, expense, findno);
+
+    Error_flag = 0;
+
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) { 
+        printf("\n");
+        printf(" 수정되었습니다. 아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else { 
+        printf("\n");
+        printf(" 수정되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+
+
+
+
+void doctor_select_tuple() {
+    /* --------------------------------------------------------------------------
+       Retrieve doctor information
+    -------------------------------------------------------------------------- */
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DoctorID[16];
+    varchar v_DoctorName[50];
+    varchar v_DoctorPhone[15];
+    varchar v_DoctorGender[10];
+    varchar v_DoctorMesub[50];
+    varchar v_DoctorRoom[10];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char docid_temp[16] = "";
+    char docname_temp[50] = "";
+    char docphone_temp[15] = "";
+    char docgender_temp[10] = "";
+    char docmesub_temp[50] = "";
+    char docroom_temp[10] = "";
+
+    int x, y, count = 0, i;
+
+    clrscr();
+
+    print_screen("doctor_select.txt");
+
+    gotoxy(38, 5);
+    gets(docid_temp);
+
+    gotoxy(69, 5);
+    gets(docname_temp);
+
+    gotoxy(38, 7);
+    gets(docphone_temp);
+
+    gotoxy(69, 7);
+    gets(docgender_temp);
+
+    gotoxy(38, 9);
+    gets(docmesub_temp);
+
+    gotoxy(69, 9);
+    gets(docroom_temp);
+
+    sprintf(sqlstmt, "SELECT DoctorID, DoctorName, DoctorPhone, DoctorGender, DoctorMesub, DoctorRoom FROM Doctor WHERE 1=1");
+
+    if (strlen(docid_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorID LIKE '%%");
+        strcat(sqlstmt, docid_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(docname_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorName LIKE '%%");
+        strcat(sqlstmt, docname_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(docphone_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorPhone LIKE '%%");
+        strcat(sqlstmt, docphone_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(docgender_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorGender LIKE '%%");
+        strcat(sqlstmt, docgender_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(docmesub_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorMesub LIKE '%%");
+        strcat(sqlstmt, docmesub_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(docroom_temp) > 0) {
+        strcat(sqlstmt, " AND DoctorRoom LIKE '%%");
+        strcat(sqlstmt, docroom_temp);
+        strcat(sqlstmt, "%%'");
+    }
+
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+
+    EXEC SQL DECLARE dc_cursor CURSOR FOR S;
+
+    EXEC SQL OPEN dc_cursor;
+
+    x = 2;
+    y = 13;
+
+    while (1) {
+        EXEC SQL FETCH dc_cursor INTO :v_DoctorID, :v_DoctorName, :v_DoctorPhone, :v_DoctorGender, :v_DoctorMesub, :v_DoctorRoom;
+
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+        v_DoctorID.arr[v_DoctorID.len] = '\0';
+        v_DoctorName.arr[v_DoctorName.len] = '\0';
+        v_DoctorPhone.arr[v_DoctorPhone.len] = '\0';
+        v_DoctorGender.arr[v_DoctorGender.len] = '\0';
+        v_DoctorMesub.arr[v_DoctorMesub.len] = '\0';
+        v_DoctorRoom.arr[v_DoctorRoom.len] = '\0';
+
+        gotoxy(x, y);
+        printf("  %-8s %-13s %-14s %-8s %-14s %-10s",
+               v_DoctorID.arr, v_DoctorName.arr, v_DoctorPhone.arr, v_DoctorGender.arr, v_DoctorMesub.arr, v_DoctorRoom.arr);
+        y++;
+        count++;
+        if (count == PAGE_NUM) {
+            printf("\n\n                                  hit any key for next\n");
+            count = 0;
+            getch();
+
+            gotoxy(0, 13); 
+            for (i = 0; i < PAGE_NUM; i++) {
+                printf("                                                                                               \n");
+            }
+            y = 13;
+        }
+    }
+    printf("\n");
+    printf("                          match tuple no : %d\n", sqlca.sqlerrd[2]);
+
+    EXEC SQL CLOSE dc_cursor;
+
+    getch();  
+}
+
+void doctor_insert_tuple()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+
+    char sqlstmt[1000];
+
+    EXEC SQL END DECLARE SECTION;
+
+    char v_DoctorID[16];
+    char v_DoctorName[50];
+    char v_DoctorPhone[15];
+    char v_DoctorGender[10];
+    char v_DoctorMesub[50];
+    char v_DoctorRoom[10];
+
+    int x, y;
+
+    clrscr();
+    print_screen("doctor_insert.txt");
+
+    x = 42;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(v_DoctorID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorName);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorPhone);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorGender);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorMesub);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DoctorRoom);
+
+    sprintf(
+        sqlstmt,
+        "INSERT INTO Doctor(DoctorID, DoctorName, DoctorPhone, DoctorGender, DoctorMesub, DoctorRoom) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')",
+        v_DoctorID, v_DoctorName, v_DoctorPhone, v_DoctorGender, v_DoctorMesub, v_DoctorRoom);
+
+    Error_flag = 0;
+
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) {  
+        printf("\n");    
+        printf(" 정상적으로 추가되었습니다.  아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");    
+        printf(" 튜플이 추가되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+
+void doctor_delete_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DoctorID[16];
+    varchar v_DoctorName[50];
+    varchar v_DoctorPhone[16];
+    varchar v_DoctorGender[10];
+    varchar v_DoctorMesub[50];
+    varchar v_DoctorRoom[10];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char dno[16];
+    char flag = 'n';
+    int x, y;
+
+    clrscr();
+    print_screen("doctor_delete.txt");
+
+    x = 38;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(dno);
+
+    sprintf(sqlstmt, "SELECT DoctorID, DoctorName, DoctorPhone, DoctorGender, DoctorMesub, DoctorRoom FROM Doctor WHERE DoctorID = '%s'", dno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+
+    EXEC SQL DECLARE dd_cursor CURSOR FOR S;
+
+    EXEC SQL OPEN dd_cursor;
+
+    while (1) {
+        EXEC SQL FETCH dd_cursor INTO :v_DoctorID, :v_DoctorName, :v_DoctorPhone, :v_DoctorGender, :v_DoctorMesub, :v_DoctorRoom;
+
+        if (sqlca.sqlcode == 1403) {
+            break;
+        }
+
+        v_DoctorID.arr[v_DoctorID.len] = '\0';
+        v_DoctorName.arr[v_DoctorName.len] = '\0';
+        v_DoctorPhone.arr[v_DoctorPhone.len] = '\0';
+        v_DoctorGender.arr[v_DoctorGender.len] = '\0';
+        v_DoctorMesub.arr[v_DoctorMesub.len] = '\0';
+        v_DoctorRoom.arr[v_DoctorRoom.len] = '\0';
+
+
+        printf("\n\n");
+        printf("                     의사번호: %s\n                     의사명: %s\n", v_DoctorID.arr, v_DoctorName.arr);
+        printf("                     전화번호: %s\n                     성별: %s\n", v_DoctorPhone.arr, v_DoctorGender.arr);
+        printf("                     전공: %s\n                     진료실: %s\n", v_DoctorMesub.arr, v_DoctorRoom.arr);
+    }
+    EXEC SQL CLOSE dd_cursor;
+
+    if (sqlca.sqlerrd[2] == 0) {
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        getch();
+        return;
+    }
+
+    printf("\n                      위의 투플들을 삭제하시겠습니까? (y/n) :");
+
+    flag = (char)getchar();
+    while (getchar() != '\n');
+
+    if (flag == 'y' || flag == 'Y') {
+        sprintf(sqlstmt, "DELETE FROM Doctor WHERE DoctorID = '%s'", dno);
+
+        Error_flag = 0;
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        if (Error_flag == 0) {  
+            printf("\n");
+            printf(" 정상적으로 삭제되었습니다. 아무키나 치세요 \n");
+            EXEC SQL COMMIT WORK;
+            getch();
+        } else {  
+            printf("\n");
+            printf(" 튜플이 삭제되지 않았습니다. 아무키나 치세요 \n");
+            EXEC SQL ROLLBACK WORK;
+            getch();
+        }
+    } else {  
+        printf("\n");
+        printf("삭제 취소\n");
+        printf("메인메뉴로 가기 : 아무키나 치세요. ");
+        getch();
+    }
+    return;
+}
+
+
+void doctor_update_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DoctorID[16];
+    varchar v_DoctorName[50];
+    varchar v_DoctorPhone[15];
+    varchar v_DoctorGender[10];
+    varchar v_DoctorMesub[50];
+    varchar v_DoctorRoom[10];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char findno[16];
+    char name[50];
+    char phone[15];
+    char room[10];
+    char old_name[50]; 
+
+    char flag = 'n';
+    int x, y;
+
+    clrscr();
+    print_screen("doctor_update.txt");
+
+    x = 38;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(findno);
+
+    sprintf(sqlstmt, "SELECT DoctorID, DoctorName, DoctorPhone, DoctorGender, DoctorMesub, DoctorRoom FROM Doctor WHERE DoctorID = '%s'", findno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+    EXEC SQL DECLARE du_cursor CURSOR FOR S;
+    EXEC SQL OPEN du_cursor;
+
+    EXEC SQL FETCH du_cursor INTO :v_DoctorID, :v_DoctorName, :v_DoctorPhone, :v_DoctorGender, :v_DoctorMesub, :v_DoctorRoom;
+
+    if (sqlca.sqlcode == 1403) {
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        EXEC SQL CLOSE du_cursor;
+        getch();
+        return;
+    }
+
+    v_DoctorID.arr[v_DoctorID.len] = '\0';
+    v_DoctorName.arr[v_DoctorName.len] = '\0';
+    v_DoctorPhone.arr[v_DoctorPhone.len] = '\0';
+    v_DoctorGender.arr[v_DoctorGender.len] = '\0';
+    v_DoctorMesub.arr[v_DoctorMesub.len] = '\0';
+    v_DoctorRoom.arr[v_DoctorRoom.len] = '\0';
+
+    strcpy(old_name, v_DoctorName.arr);
+
+    printf("\n");
+    printf("   의사 ID: %s, 이름: %s, 전화번호: %s, 성별: %s\n",
+           v_DoctorID.arr, v_DoctorName.arr, v_DoctorPhone.arr, v_DoctorGender.arr);
+    printf("   전공: %s, 진료실: %s\n", v_DoctorMesub.arr, v_DoctorRoom.arr);
+    EXEC SQL CLOSE du_cursor;
+
+    x = 39;
+    y = 13;
+
+    gotoxy(x, y);
+    gets(name);
+    if (name[0] == '\0') {
+        strcpy(name, v_DoctorName.arr);
+    }
+
+    y = y + 2;
+    gotoxy(x, y);
+    fgets(phone, sizeof(phone), stdin);
+    phone[strcspn(phone, "\n")] = '\0';
+    if (phone[0] == '\0') {
+        strcpy(phone, v_DoctorPhone.arr);
+    }
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(room);
+    if (room[0] == '\0') {
+        strcpy(room, v_DoctorRoom.arr);
+    }
+
+    sprintf(sqlstmt,
+            "UPDATE Doctor SET DoctorName = '%s', DoctorPhone = '%s', DoctorRoom = '%s' WHERE DoctorID = '%s'",
+            name, phone, room, findno);
+
+    Error_flag = 0;
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) {
+        sprintf(sqlstmt, "UPDATE Medical " "SET DoctorName = '%s' " "WHERE DoctorName = '%s'", name, old_name);
+
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        printf("\n");
+        printf(" 의사 정보가 수정되었습니다. 아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");
+        printf(" 수정되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+
+
+
+
+
+void department_select_tuple()
+{
+    /* --------------------------------------------------------------------------
+       Retrieve department information
+    -------------------------------------------------------------------------- */
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DepartmentID[16];
+    varchar v_DepartmentName[50];
+    varchar v_DepartmentPhone[15];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char deptid_temp[16] = "";
+    char deptname_temp[50] = "";
+    char deptphone_temp[15] = "";
+
+    int x, y, count = 0, i;
+
+    clrscr();
+
+    print_screen("department_select.txt");
+
+    gotoxy(46, 5);
+    gets(deptid_temp);
+
+    gotoxy(71, 5);
+    gets(deptname_temp);
+
+    gotoxy(46, 7);
+    gets(deptphone_temp);
+
+    sprintf(sqlstmt, "SELECT DepartmentID, DepartmentName, DepartmentPhone FROM Department WHERE 1=1");
+
+    if (strlen(deptid_temp) > 0) {
+        strcat(sqlstmt, " AND DepartmentID LIKE '%%");
+        strcat(sqlstmt, deptid_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(deptname_temp) > 0) {
+        strcat(sqlstmt, " AND DepartmentName LIKE '%%");
+        strcat(sqlstmt, deptname_temp);
+        strcat(sqlstmt, "%%'");
+    }
+    if (strlen(deptphone_temp) > 0) {
+        strcat(sqlstmt, " AND DepartmentPhone LIKE '%%");
+        strcat(sqlstmt, deptphone_temp);
+        strcat(sqlstmt, "%%'");
+    }
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+
+    EXEC SQL DECLARE dec_cursor CURSOR FOR S;
+
+    EXEC SQL OPEN dec_cursor;
+
+    x = 2;
+    y = 12;
+
+    while (1) {
+        EXEC SQL FETCH dec_cursor INTO :v_DepartmentID, :v_DepartmentName, :v_DepartmentPhone;
+
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+        v_DepartmentID.arr[v_DepartmentID.len] = '\0';
+        v_DepartmentName.arr[v_DepartmentName.len] = '\0';
+        v_DepartmentPhone.arr[v_DepartmentPhone.len] = '\0';
+
+        gotoxy(x, y);
+        printf("              %-15s %-22s %-15s", 
+               v_DepartmentID.arr, v_DepartmentName.arr, v_DepartmentPhone.arr);
+        y++;
+        count++;
+        if (count == PAGE_NUM) {
+            printf("\n\n                                  hit any key for next\n");
+            count = 0;
+            getch();
+
+            gotoxy(0, 12); 
+            for (i = 0; i < PAGE_NUM; i++) {
+                printf("                                                                                               \n");
+            }
+            y = 12;
+        }
+    }
+    printf("\n");    
+    printf("                          match tuple no : %d\n", sqlca.sqlerrd[2]);
+
+    EXEC SQL CLOSE dec_cursor;
+
+    getch(); 
+}
+
+
+void department_insert_tuple()
+{
+    EXEC SQL BEGIN DECLARE SECTION;
+
+    char sqlstmt[1000];
+
+    EXEC SQL END DECLARE SECTION;
+
+    char v_DepartmentID[16];
+    char v_DepartmentName[50];
+    char v_DepartmentPhone[15];
+
+    int x, y;
+
+    clrscr();
+    print_screen("department_insert.txt");
+
+    x = 46;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(v_DepartmentID);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DepartmentName);
+
+    y = y + 2;
+    gotoxy(x, y);
+    gets(v_DepartmentPhone);
+
+    sprintf(
+        sqlstmt,
+        "INSERT INTO Department(DepartmentID, DepartmentName, DepartmentPhone) VALUES ('%s', '%s', '%s')",
+        v_DepartmentID, v_DepartmentName, v_DepartmentPhone);
+
+    Error_flag = 0;
+
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) { 
+        printf("\n");    
+        printf(" 정상적으로 추가되었습니다.  아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");    
+        printf(" 튜플이 추가되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+    return;
+}
+
+
+void department_delete_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DepartmentID[16];
+    varchar v_DepartmentName[50];
+    varchar v_DepartmentPhone[16];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char dno[16];
+    char flag = 'n';
+    int x, y;
+
+    clrscr();
+    print_screen("department_delete.txt");
+
+    x = 38;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(dno);
+
+    sprintf(sqlstmt, "SELECT DepartmentID, DepartmentName, DepartmentPhone FROM Department WHERE DepartmentID = %s", dno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+
+    EXEC SQL DECLARE ded_cursor CURSOR FOR S;
+
+    EXEC SQL OPEN ded_cursor;
+
+    while (1) {
+        EXEC SQL FETCH ded_cursor INTO :v_DepartmentID, :v_DepartmentName, :v_DepartmentPhone;
+
+        if (sqlca.sqlcode == 1403) { 
+            break;
+        }
+
+        v_DepartmentID.arr[v_DepartmentID.len] = '\0';
+        v_DepartmentName.arr[v_DepartmentName.len] = '\0';
+        v_DepartmentPhone.arr[v_DepartmentPhone.len] = '\0';
+
+        printf("\n\n");
+        printf("                     부서번호:%s    부서명:%s\n                     부서전화번호:%s \n",
+               v_DepartmentID.arr, v_DepartmentName.arr, v_DepartmentPhone.arr);
+    }
+    EXEC SQL CLOSE ded_cursor;
+
+    if (sqlca.sqlerrd[2] == 0) {
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        getch();
+        return;
+    }
+
+    printf("\n                      위의 투플들을 삭제하시겠습니까? (y/n) :");
+
+    flag = (char)getchar();
+    while (getchar() != '\n'); 
+
+    if (flag == 'y' || flag == 'Y') {
+        sprintf(sqlstmt, "DELETE FROM Department WHERE DepartmentID = %s", dno);
+
+        Error_flag = 0;
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        if (Error_flag == 0) { 
+            printf("\n");
+            printf(" 정상적으로 삭제되었습니다. 아무키나 치세요 \n");
+            EXEC SQL COMMIT WORK;
+            getch();
+        } else {  
+            printf("\n");
+            printf(" 튜플이 삭제되지 않았습니다. 아무키나 치세요 \n");
+            EXEC SQL ROLLBACK WORK;
+            getch();
+        }
+    } else {  
+        printf("\n");
+        printf("삭제 취소\n");
+        printf("메인메뉴로 가기 : 아무키나 치세요. ");
+        getch();
+    }
+    return;
+}
+
+
+void department_update_tuple() {
+    EXEC SQL BEGIN DECLARE SECTION;
+    varchar v_DepartmentID[16];
+    varchar v_DepartmentName[50];
+    varchar v_DepartmentPhone[15];
+
+    char sqlstmt[1000];
+    EXEC SQL END DECLARE SECTION;
+
+    char findno[16];
+    char name[50];
+    char phone[15];
+    char old_name[50]; 
+
+    int x, y;
+
+    clrscr();
+    print_screen("department_update.txt");
+
+    x = 38;
+    y = 6;
+
+    gotoxy(x, y);
+    gets(findno);
+
+    sprintf(sqlstmt, "SELECT DepartmentID, DepartmentName, DepartmentPhone FROM Department WHERE DepartmentID = '%s'", findno);
+
+    EXEC SQL PREPARE S FROM :sqlstmt;
+    EXEC SQL DECLARE deu_cursor CURSOR FOR S;
+    EXEC SQL OPEN deu_cursor;
+
+    EXEC SQL FETCH deu_cursor INTO :v_DepartmentID, :v_DepartmentName, :v_DepartmentPhone;
+
+    if (sqlca.sqlcode == 1403) {
+        printf("검색된 투플이 없습니다. 아무키나 치세요");
+        EXEC SQL CLOSE deu_cursor;
+        getch();
+        return;
+    }
+
+    v_DepartmentID.arr[v_DepartmentID.len] = '\0';
+    v_DepartmentName.arr[v_DepartmentName.len] = '\0';
+    v_DepartmentPhone.arr[v_DepartmentPhone.len] = '\0';
+
+    strcpy(old_name, v_DepartmentName.arr); 
+
+    printf("\n");
+    printf("   부서 ID: %s, 이름: %s, 전화번호: %s\n",
+           v_DepartmentID.arr, v_DepartmentName.arr, v_DepartmentPhone.arr);
+
+    EXEC SQL CLOSE deu_cursor;
+
+    x = 43;
+    y = 13;
+
+    gotoxy(x, y);
+    gets(name);
+    if (name[0] == '\0') {
+        strcpy(name, v_DepartmentName.arr);
+    }
+
+    y = y + 2;
+    gotoxy(x, y);
+    fgets(phone, sizeof(phone), stdin);
+    phone[strcspn(phone, "\n")] = '\0'; 
+    if (phone[0] == '\0') { 
+        strcpy(phone, v_DepartmentPhone.arr);
+    }
+
+    sprintf(sqlstmt,
+            "UPDATE Department SET DepartmentName = '%s', DepartmentPhone = '%s' WHERE DepartmentID = '%s'",
+            name, phone, findno);
+
+    Error_flag = 0;
+    EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+    if (Error_flag == 0) {
+        sprintf(sqlstmt,
+                "UPDATE Doctor "
+                "SET DoctorMesub = '%s' "
+                "WHERE DoctorMesub = '%s'",
+                name, old_name);
+
+        EXEC SQL EXECUTE IMMEDIATE :sqlstmt;
+
+        printf("\n");
+        printf(" 부서 정보가 수정되었습니다. 아무키나 치세요 \n");
+        EXEC SQL COMMIT WORK;
+        getch();
+    } else {
+        printf("\n");
+        printf(" 수정되지 않았습니다. 아무키나 치세요 \n");
+        EXEC SQL ROLLBACK WORK;
+        getch();
+    }
+
+    return;
+}
+
+
+void print_screen(char fname[])
+{
+    FILE *fp;
+    char line[100];
+
+    if ( (fp = fopen(fname,"r"))  == NULL ){
+        printf("file open error\n");
+        getch();
+        exit(-1);
+    }
+    while(1) {
+        if( fgets(line, 99, fp) == NULL){
+            break;
+        }
+        printf("%s", line);
+    }
+
+    fclose(fp);
+}
+
+/* --------------------------------------------------------------------------
+int sql_error()
+
+   errrpt prints the ORACLE error msg and number.
+-------------------------------------------------------------------------- */
+void sql_error(char *msg)
+{
+    char err_msg[128];
+    size_t buf_len, msg_len;
+    int x, y ;
+
+    EXEC SQL WHENEVER SQLERROR CONTINUE;
+
+    getxy(&x, &y); 
+
+    Error_flag = 1; 
+
+    gotoxy(1,22) ; 
+
+    printf("%s", msg);
+    buf_len = sizeof (err_msg);
+    sqlglm(err_msg, &buf_len, &msg_len);
+    printf("%.*s\n", msg_len, err_msg);
+
+    gotoxy(x, y) ;  
+}
+
+#define STD_HANDLE GetStdHandle(STD_OUTPUT_HANDLE)
+
+void gotoxy(int x, int y)
+{
+    COORD Cur= {(SHORT)x, (SHORT) y};
+
+    SetConsoleCursorPosition(STD_HANDLE, Cur);
+}
+
+void getxy(int *x, int *y)
+{
+    CONSOLE_SCREEN_BUFFER_INFO Buf ;
+
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &Buf);
+    *x = (int)Buf.dwCursorPosition.X ;
+    *y = (int)Buf.dwCursorPosition.Y ;
+ 
+}
+
+void clrscr(void)
+{
+    COORD Cur= {0, 0};
+    unsigned long dwLen;
+
+    FillConsoleOutputCharacter(STD_HANDLE, ' ', 120*28, Cur, &dwLen);
+    gotoxy(0,0);
+}
+
+/*---------------------------------------------------------*/
